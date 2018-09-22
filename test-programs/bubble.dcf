@@ -4,13 +4,13 @@ class BubbleSort
 	{
 		int N, i, j,temp;
 		int a[100];
-		N_1 = N-1
+		N_1 = N-1;
 
 		//This section for initialising the array
-		N = 50
+		N = 50;
 		for i=0,N
 		{
-			a[i] = (N - i)
+			a[i] = (N - i);
 		}
 
 		//Sorting the array
@@ -21,9 +21,9 @@ class BubbleSort
 			{
 				if(a[j] > a[j+1])
 				{
-					temp = a[j]
-					a[j] = a[j+1]
-					a[j+1] = temp
+					temp = a[j];
+					a[j] = a[j+1];
+					a[j+1] = temp;
 				}
 			}
 		}
@@ -32,7 +32,7 @@ class BubbleSort
 
 		for i=0,N
 		{
-			callout("print_int",a[i])
+			callout("print_int",a[i]);
 		}	
 	}
 }
