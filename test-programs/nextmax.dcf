@@ -1,0 +1,50 @@
+
+
+class NextMax
+{
+	void main()
+	{
+		int N,i,j;
+		int a[100];
+
+		//Initialise the array here
+		N = 10
+		for i=0,N
+		{
+			a[i] = -1*i
+		}
+
+		//Initialising the maximum value to some large negative value
+		max = -1000000
+		index = -1
+
+		for i=0,N
+		{
+			if(a[i] > max)
+			{
+				max = a[i]
+				index = i
+			}
+		}
+
+		//Replacing the max element with some large negative value
+		a[index] = -100000
+
+		//Finding the maximum element again(we will second maximum this time)
+
+		max = -1000000
+		index = -1
+
+		for i=0,N
+		{
+			if(a[i] > max)
+			{
+				max = a[i]
+				index = i
+			}
+		}
+
+		callout("print_int",max);
+
+	}
+}
