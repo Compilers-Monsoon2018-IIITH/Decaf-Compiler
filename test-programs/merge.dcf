@@ -1,0 +1,98 @@
+class MergeSort
+{
+	int a[100];
+	int N;
+	void main()
+	{
+		input_array();
+		merge_sort(0,N);
+		print_array();
+	}
+	
+	void input_array()
+	{
+		N=50;
+		for i=0,N
+		{
+			a[i] = N-i;
+		}
+	}
+
+	void merge_sort(start,end)
+	{
+		int temp,i,j,k,pos;
+		int aux[100];
+		if( (start - end) <= 1)
+			return;
+
+		if( (start - end) == 2)
+		{
+			if(a[start] > a[start + 1])
+			{
+				temp = a[start];
+				a[start] = a[start + 1];
+				a[start + 1] = a[start];
+			}
+		}
+
+		merge_sort(start,end/2);
+		merge_sort(end/2,start);
+
+		i = start;
+		j = (start+end)/2;
+		pos = 0;
+		for k=start,end
+		{
+			if(i >= (start+end)/2)
+			{
+				break;
+			}
+			if(j >= end)
+			{
+				break;
+			}
+			if( a[i] <= a[j])
+			{
+				aux[pos] = a[i];
+				i = i+1;
+				pos += 1;
+			}
+			if( a[i] > a[j])
+			{
+				aux[pos] = a[j];
+				j = j+1;
+				pos += 1;
+			}
+		}
+		if(j < end)
+		{
+			for k = j,end
+			{
+				aux[pos] = a[k];
+				pos += 1;
+			}
+		}
+		if(i < (start+end)/2)
+		{
+			for k = i,(start+end)/2
+			{
+				aux[pos] = a[k];
+				pos += 1;
+			}
+		}
+		for k = 0,pos
+		{
+			a[start+k] = aux[k];
+		}
+		return;		
+	}
+
+	void print_array()
+	{
+		int i;
+		for i=0,N
+		{
+			callout("print_int",a[i]);
+		}	
+	}
+}
