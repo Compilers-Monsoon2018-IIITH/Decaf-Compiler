@@ -1,32 +1,11 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-class AST;
-class Expressions;
-class Location;
-class Expression;
-class Callout_args;
-class Callout_arg;
-class Literal;
-class Method_call;
-
 class AST
 {
 	public:
   	AST()=default;
-  	// virtual int accept(Visitor *v);
-};
-
-// class Visitor{
-
-// };
-
-// enum Operator{
-// plus=1
-// }Operator;
-
-enum Literal_type{
-lit = 1
+  	
 };
 
 class Literal:public AST
@@ -63,6 +42,7 @@ public:
 	 std::vector<class Expression*> v;
 	 void pushback(class Expression *);
 	 Expressions(class Expression *);
+
 };
 
 class Location:public AST
@@ -118,9 +98,9 @@ public:
 class Var_decl:public AST
 {
 public:
-	int type;
+	string type;
 	class Id_list* id_list;
-	Var_decl(int, class Id_list*);
+	Var_decl(string, class Id_list*);
 };
 
 class Statement:public AST
@@ -157,9 +137,10 @@ class If_for:public AST
 public:
 	class Block* block1;
 	class Block* block2;
-	class Expression* expression1;
-	class Expression* expression2;
-	If_for(class Block*, class Block*, class Expression*, class Expression*);
+	class Expression* expr1;
+	class Expression* expr2;
+	string var_name;
+	If_for(class Block*, class Block*, class Expression*, class Expression*, string var_name);
 };
 
 class Program:public AST
@@ -174,9 +155,10 @@ public:
 class Field_decl:public AST
 {
 public:
-	int type;
+	string type;
 	class Vars_decla * vars;
-	Field_decl(int type, class Vars_decla *);
+	Field_decl(string type, class Vars_decla *);
+	std::vector<class Var_decla *> v;
 };
 
 class Field_decls:public AST
@@ -192,8 +174,9 @@ class Var_decla:public AST
 {
 public:
 	string id;
-	int lit;
-	Var_decla(string id, int lit);
+	int is_array;
+	int array_size;
+	Var_decla(string, int, int );
 };
 
 class Vars_decla:public AST
@@ -202,6 +185,7 @@ public:
 	std::vector<class Var_decla *> v;
 	Vars_decla(class Var_decla *);
 	void pushback(class Var_decla *);
+	std::vector<Var_decla *> getVars();
 };
 
 
@@ -214,7 +198,6 @@ public:
 	class Method_args* met;
 	class Block* block;
 	Method_decl(string type, string id, class Method_args*, class Block*);
-
 };
 
 class Method_decls:public AST
@@ -223,7 +206,6 @@ public:
 	std::vector<class Method_decl *> v;
 	Method_decls(class Method_decl *);
 	void pushback(class Method_decl *);
-
 
 };
 

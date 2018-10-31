@@ -57,10 +57,12 @@ class Program * root;
 %token OR
 %token EXCLAMATION
 %token <str> ID
-%token INT_LITERAL
+%token <number> INT_LITERAL
 %token CHAR
 %token BOOL
 %token '['
+%token '{'
+%token '}'
 %token CALLOUT
 %token STRING
 %token FOR
@@ -72,20 +74,20 @@ class Program * root;
 %token PEQUALS
 %token RETURN 
 %token INT
-%token BOOl
 %token ELSE
 %token PROGRAM
-%token TYPE
+%token <str> TYPE
 %token VOID
 %token CLASS
 %token ']'
-
+%token ';'
 %left EE NE
 %left AND OR
 %left LT GT LE GE
 %left PLUS MINUS
 %left MUL DIV MOD
 %right EXCLAMATION '='
+%token ','
 
 %type <lit> literal
 %type <call_arg> callout_arg
@@ -115,7 +117,7 @@ class Program * root;
 %%
 
 
-program : CLASS  PROGRAM '{' field_decls method_decls '}'  {$$ = new Program($4, $5); root = $$; }
+program : CLASS  PROGRAM '{' field_decls method_decls '}'  { $$ = new Program($4, $5); root = $$; }
 		| CLASS  PROGRAM '{' field_decls '}' {$$ = new Program($4, NULL); root = $$;}
 		| CLASS  PROGRAM '{' method_decls '}' {$$ = new Program(NULL, $4); root = $$; }
 		| CLASS  PROGRAM '{' '}' {$$ = new Program(NULL, NULL); root = $$; }
@@ -123,26 +125,26 @@ program : CLASS  PROGRAM '{' field_decls method_decls '}'  {$$ = new Program($4,
 field_decls : field_decl {$$ = new Field_decls($1);}
 			| field_decls field_decl { $$->pushback($2);}
 
-field_decl : TYPE vars_decla ';' {$$ = new Field_decl(1,$2);}
+field_decl : TYPE vars_decla ';' {$$ = new Field_decl(string($1),$2);}
 
 vars_decla : var_decla {$$ = new Vars_decla($1);}
 		  | vars_decla ',' var_decla {$$->pushback($3);}
 
-var_decla : ID '[' INT_LITERAL ']' {$$ = new Var_decla(NULL,1);}
-          | ID {$$ = new Var_decla(NULL,1);}
+var_decla : ID '[' INT_LITERAL ']' {$$ = new Var_decla(string($1),1, $3);}
+          | ID {$$ = new Var_decla(string($1),0,0);}
 
 method_decls : method_decl { $$=new Method_decls($1); }
 			 | method_decls method_decl { $$->pushback($2); }
 
-method_decl : TYPE ID '(' method_args ')' block { $$ = new Method_decl(NULL, NULL, $4, $6);}
-			| TYPE ID '(' ')' block { $$ = new Method_decl(NULL, NULL, NULL, $5); }
-			| VOID ID '(' method_args ')' block { $$ = new Method_decl(NULL, NULL, $4, $6); }
-			| VOID ID '(' ')' block { $$ = new Method_decl(NULL, NULL, NULL, $5);}
+method_decl : TYPE ID '(' method_args ')' block { $$ = new Method_decl(string($1), string($2), $4, $6);}
+			| TYPE ID '(' ')' block { $$ = new Method_decl(string($1), string($2), NULL, $5); }
+			| VOID ID '(' method_args ')' block { $$ = new Method_decl("void", string($2), $4, $6); }
+			| VOID ID '(' ')' block { $$ = new Method_decl("void", string($2), NULL, $5);}
 
 method_args : method_arg { $$ = new Method_args($1); }
 			| method_args ',' method_arg { $$->pushback($3);}
 
-method_arg : TYPE ID {$$ = new Method_arg(NULL, NULL);}
+method_arg : TYPE ID {$$ = new Method_arg(string($1), string($2));}
 
 block: '{' var_decl_list '}' {$$ = new Block($2, NULL);}
      |  '{' var_decl_list statement_list '}' {$$ = new Block($2,$3);}
@@ -152,58 +154,58 @@ block: '{' var_decl_list '}' {$$ = new Block($2, NULL);}
 var_decl_list : var_decl {$$ = new Var_decl_list($1);}
 			  | var_decl_list var_decl {$$->pushback($2);}
 
-var_decl : TYPE id_list ';' {$$ = new Var_decl(1,$2);}
+var_decl : TYPE id_list ';' {$$ = new Var_decl(string($1),$2);}
  	
-id_list: ID {$$ = new Id_list(yylval.str);}
-	   | id_list ID {$$->pushback(yylval.str);}
+id_list: ID {$$ = new Id_list(string($1));}
+	   | id_list ID {$$->pushback(string($2));}
 
 statement_list : statement {$$ = new Statement_list($1);}
 			   | statement_list statement {$$->pushback($2);}
 
-statement : assignment {$$ = new Statement(NULL,NULL,NULL, $1, NULL, NULL);}
-		  | if_for {$$ = new Statement(NULL,NULL,NULL, NULL, $1, NULL);}
-		  | method_call ';' {$$ = new Statement(NULL,NULL,NULL, NULL, NULL, $1);}
+statement : assignment {$$ = new Statement("assignment",NULL,NULL, $1, NULL, NULL);}
+		  | if_for {$$ = new Statement("if_for",NULL,NULL, NULL, $1, NULL);}
+		  | method_call ';' {$$ = new Statement("str",NULL,NULL, NULL, NULL, $1);}
 		  | RETURN ';' {$$ = new Statement("return",NULL,NULL, NULL, NULL, NULL);}
 		  | RETURN expr ';' {$$ = new Statement("return",$2,NULL, NULL, NULL, NULL);}
 		  | BREAK ';'  {$$ = new Statement("break",NULL,NULL, NULL, NULL, NULL);}
 		  | CONTINUE ';' {$$ = new Statement("continue",NULL,NULL, NULL, NULL, NULL);}
-		  | block {$$ = new Statement(NULL,NULL,$1, NULL, NULL, NULL);}
+		  | block {$$ = new Statement("block",NULL,$1, NULL, NULL, NULL);}
 
 assignment : location EQUALS expr ';'  {$$ = new Assignment($1, $3, 1);}
-		   | location PEQUALS expr ';' {$$ = new Assignment($1, $3, 1);}
-		   | location MEQUALS expr ';' {$$ = new Assignment($1, $3, 1);}
+		   | location PEQUALS expr ';' {$$ = new Assignment($1, $3, 2);}
+		   | location MEQUALS expr ';' {$$ = new Assignment($1, $3, 3);}
 
-if_for :  IF '(' expr ')' block {$$ = new If_for($5, NULL, $3, NULL);}
-		| IF '(' expr ')' block ELSE block {$$ = new If_for($5, $7, $3, NULL);}
-		| FOR ID '=' expr ',' expr block {$$ = new If_for($7, NULL, $4, $6);}
+if_for :  IF '(' expr ')' block {$$ = new If_for($5, NULL, $3, NULL,"str");}
+		| IF '(' expr ')' block ELSE block {$$ = new If_for($5, $7, $3, NULL,"str");}
+		| FOR ID EQUALS expr ',' expr block {$$ = new If_for($7, NULL, $4, $6,string($2));}
 
 expr : location {$$ = new Expression(NULL, NULL, 0, NULL);}
-	 | method_call { $$ = new Expression(NULL, NULL, 0, NULL); }
-	 | literal { $$ = new Expression(NULL, NULL, 0, $1); }
-	 | expr PLUS expr {$$ = new Expression($1, $3, 1, NULL); }
-	 | expr MINUS expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr MUL expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr DIV expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr MOD expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr GT expr { $$ = new Expression($1, $3, 1, NULL);  }
-	 | expr LT expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr GE expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr LE expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr EE expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr NE expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | expr AND expr {  $$ = new Expression($1, $3, 1, NULL); }
-	 | expr OR expr { $$ = new Expression($1, $3, 1, NULL); }
-	 | MINUS expr {$$ = new Expression($2, NULL, 1, NULL);}
-	 | EXCLAMATION expr { $$ = new Expression($2, NULL, 1, NULL); }
-	 | '(' expr ')' { $$ = new Expression($2, NULL, 0, NULL); }
+	 | method_call { $$ = new Expression(NULL, NULL, 1, NULL); }
+	 | literal { $$ = new Expression(NULL, NULL, 2, $1); }
+	 | expr PLUS expr {$$ = new Expression($1, $3, 3, NULL); }
+	 | expr MINUS expr { $$ = new Expression($1, $3, 4, NULL); }
+	 | expr MUL expr { $$ = new Expression($1, $3, 5, NULL); }
+	 | expr DIV expr { $$ = new Expression($1, $3, 6, NULL); }
+	 | expr MOD expr { $$ = new Expression($1, $3, 7, NULL); }
+	 | expr GT expr { $$ = new Expression($1, $3, 8, NULL);  }
+	 | expr LT expr { $$ = new Expression($1, $3, 9, NULL); }
+	 | expr GE expr { $$ = new Expression($1, $3, 10, NULL); }
+	 | expr LE expr { $$ = new Expression($1, $3, 11, NULL); }
+	 | expr EE expr { $$ = new Expression($1, $3, 12, NULL); }
+	 | expr NE expr { $$ = new Expression($1, $3, 13, NULL); }
+	 | expr AND expr {  $$ = new Expression($1, $3, 14, NULL); }
+	 | expr OR expr { $$ = new Expression($1, $3, 15, NULL); }
+	 | MINUS expr {$$ = new Expression($2, NULL, 16, NULL);}
+	 | EXCLAMATION expr { $$ = new Expression($2, NULL, 17, NULL); }
+	 | '(' expr ')' { $$ = new Expression($2, NULL, 18, NULL); }
 
 location : ID {$$ = new Location(NULL, yylval.str);}
 		 | ID '[' expr ']' {$$ = new Location($3, yylval.str);}
 
-method_call: ID '(' expressions ')' {$$ = new Method_call($3, yylval.str, NULL, NULL);}
-		   | ID '(' ')' {$$ = new Method_call(NULL, yylval.str, NULL, NULL);}
-		   | CALLOUT '(' STRING ')' {$$ = new Method_call(NULL,NULL, NULL, yylval.str);}
-		   | CALLOUT '(' STRING callout_args ')' {$$ = new Method_call(NULL,NULL, $4, yylval.str);}
+method_call: ID '(' expressions ')' {$$ = new Method_call($3, yylval.str, NULL, "str");}
+		   | ID '(' ')' {$$ = new Method_call(NULL, yylval.str, NULL, "str");}
+		   | CALLOUT '(' STRING ')' {$$ = new Method_call(NULL,"str", NULL, yylval.str);}
+		   | CALLOUT '(' STRING callout_args ')' {$$ = new Method_call(NULL,"str", $4, yylval.str);}
 
 expressions: expr {$$ = new Expressions($1);}
 			| expressions ',' expr { $$->pushback($3);}
@@ -211,7 +213,7 @@ expressions: expr {$$ = new Expressions($1);}
 callout_args: ',' callout_arg {$$ = new Callout_args($2);}
 			| callout_args ',' callout_arg {$$->pushback($3);}
 
-callout_arg: expr {$$ = new Callout_arg($1, NULL);}
+callout_arg: expr {$$ = new Callout_arg($1, "str");}
 		   | STRING {$$ = new Callout_arg(NULL, yylval.str);}
 
 literal: INT_LITERAL {$$ = new Literal(1,yylval.number); }

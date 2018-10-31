@@ -1,5 +1,6 @@
 #include "ast.h" 
 
+
 Literal::Literal(int type, int value)
 {
 	this->type = type;
@@ -80,7 +81,7 @@ void Statement_list::pushback(class Statement* statement)
 	this->v.push_back(statement);
 }
 
-Var_decl::Var_decl(int type, class Id_list* id_list)
+Var_decl::Var_decl(string type, class Id_list* id_list)
 {	
 	this->type = type;
 	this->id_list = id_list;
@@ -113,12 +114,13 @@ Assignment::Assignment(class Location* location, class Expression* expression, i
 	this->op = op;
 }
 
-If_for::If_for(class Block* block1, class Block* block2, class Expression * expression1, class Expression *expression2)
+If_for::If_for(class Block* block1, class Block* block2, class Expression * expression1, class Expression *expression2, string name)
 {
 	this->block1 = block1;
 	this->block2 = block2;
-	this->expression1 = expression1;
-	this->expression2 = expression2;
+	this->expr1 = expression1;
+	this->expr2 = expression2;
+	this->var_name = name;
 }
 
 Program::Program(class Field_decls* field, class Method_decls* method)
@@ -138,17 +140,25 @@ void Field_decls::pushback(class Field_decl * fie)
 }
 
 
-Field_decl::Field_decl(int type, class Vars_decla * vars)
+Field_decl::Field_decl(string type, class Vars_decla * vars)
 {
 	this->type = type;
 	this->vars = vars;
+	this->v = vars->getVars();
 }
 
-Var_decla::Var_decla(string id, int lit)
+Var_decla::Var_decla(string id, int lit, int array_size)
 {
 	this->id = id;
-	this->lit = lit;
+	this->is_array = lit;
+	this->array_size = array_size;
 }
+
+std::vector<Var_decla *> Vars_decla::getVars()
+{
+ 	return v;
+}
+
 
 Vars_decla::Vars_decla(class Var_decla * var)
 {
