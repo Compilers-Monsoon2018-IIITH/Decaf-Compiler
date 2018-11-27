@@ -40,7 +40,7 @@ hex 0x[0-9a-fA-F][0-9a-fA-F]*
 "||"				{printf("|"); return OR;}
 "true"				{printf("true");yylval.number = 1;return BOOL;}
 "false"				{printf("false"); yylval.number = 0; return BOOL;}
-"int"				{yylval.str  =strdup(yytext);return TYPE;}
+"int"				{yylval.str  =strdup(yytext); printf("int");return TYPE;}
 "boolean" 			{yylval.str  =strdup(yytext);return TYPE;}
 "for"				{printf("for");return FOR;}
 "if"				{return IF;}

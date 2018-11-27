@@ -1,20 +1,19 @@
 class Program
 {
+	int ans;
+	int n;
+
 	void main()
 	{
-		int n;
-
-		//Initialise the value of n here
+		
 		n = 10;
-		sum =0;
 
-		//Calculating the sum
+		ans = (n*(n+1));
 
-		for i = 1,(n+1)
-		{
-			sum = sum + i;
-		}
+		ans = ans/2;
 
-		callout("print_int",sum);
+		callout("printf", "The sum of n elements  is : %d",ans);
+
 	}
+
 }

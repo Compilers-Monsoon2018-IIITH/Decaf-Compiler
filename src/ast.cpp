@@ -18,11 +18,6 @@ Literal::Literal(int type, int value)
 	this->value = value;
 }
 
-Callout_arg::Callout_arg(class Expression* expression, string str)
-{
-	this->expression = expression;
-	this->str = str;
-}
 
 Expression::Expression(class Expression * expression1, class Expression *expression2,int symbol,  class Literal* literal, class Location * location, class Method_call * method_call )
 {
@@ -54,23 +49,7 @@ Location::Location(class Expression * expression, string Id)
 		type = 1;
 }
 
-Method_call::Method_call(class Expressions* expressions, string Id, class Callout_args * callout_args, string callout_str)
-{
-	this->expressions = expressions;
-	this->Id  = Id;
-	this->callout_args = callout_args;
-	this->callout_str = callout_str;
-}
 
-Callout_args::Callout_args(class Callout_arg * callout_arg)
-{
-	this->v.push_back(callout_arg);
-}
-
-void Callout_args::pushback(class Callout_arg * callout_arg)
-{
-	this->v.push_back(callout_arg);
-}
 
 Block::Block(class Var_decl_list* var_decl_list, class Statement_list* statement_list)
 {
@@ -360,6 +339,35 @@ Value *Method_decls::generateCode(Constructs *compilerConstructs)
   return V;
 }
 
+
+
+Method_call::Method_call(class Expressions* expressions, string Id, class Callout_args * callout_args, string callout_str)
+{
+	printf("been here");
+	this->expressions = expressions;
+	this->Id  = Id;
+	this->callout_args = callout_args;
+	this->callout_str=callout_str.substr(1,(callout_str.length())-2);
+
+}
+
+Callout_args::Callout_args(class Callout_arg * callout_arg)
+{
+	this->v.push_back(callout_arg);
+}
+
+void Callout_args::pushback(class Callout_arg * callout_arg)
+{
+	this->v.push_back(callout_arg);
+}
+
+Callout_arg::Callout_arg(class Expression* expression, string str)
+{
+	this->expression = expression;
+	this->str = str;
+}
+
+
 Function* Method_decl::generateCode(Constructs *compilerConstructs)
 {
     cout<<"Entered Method declaration\n";
@@ -597,7 +605,6 @@ Value* If_for::generateCode(Constructs *compilerConstructs)
 		return generateCode_For(compilerConstructs);
 	}
 }
-
 Value* If_for::generateCode_If(Constructs *compilerConstructs)
 {
   cout<<"Entered If_else\n";
@@ -676,7 +683,6 @@ Value* If_for::generateCode_If(Constructs *compilerConstructs)
             compilerConstructs->Builder->CreateRet(ConstantInt::get(compilerConstructs->Context, APInt(32, 0)));
         }
     }
-    cout<<"hello5"<<endl;
     Value *V = ConstantInt::get(compilerConstructs->Context, APInt(32, 0));
     return V;
 }
@@ -872,7 +878,7 @@ Value *Expression::generateCode(Constructs *compilerConstructs)
 
 Value *Callout_arg::generateCode(Constructs *compilerConstructs)
 {
-    cout<<"Entered Callout_arg "<<str<<endl;
+    cout<<"Entered Callout_arg "<< str <<endl;
     if (expression == nullptr && str=="") {
         compilerConstructs->errors++;
         return reportError("Invalid Callout Arg");

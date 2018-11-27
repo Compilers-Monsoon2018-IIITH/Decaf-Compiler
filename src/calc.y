@@ -157,14 +157,14 @@ var_decl_list : var_decl {$$ = new Var_decl_list($1);}
 var_decl : TYPE id_list ';' {$$ = new Var_decl(string($1),$2);}
  	
 id_list: ID {$$ = new Id_list(string($1));}
-	   | id_list ID {$$->pushback(string($2));}
+	   | id_list ',' ID {$$->pushback(string($3));}
 
 statement_list : statement {$$ = new Statement_list($1);}
 			   | statement_list statement {$$->pushback($2);}
 
 statement : assignment {$$ = new Statement("assignment",NULL,NULL, $1, NULL, NULL);}
 		  | if_for {$$ = new Statement("if_for",NULL,NULL, NULL, $1, NULL);}
-		  | method_call ';' {$$ = new Statement("str",NULL,NULL, NULL, NULL, $1);}
+		  | method_call ';' {$$ = new Statement("method_call",NULL,NULL, NULL, NULL, $1);}
 		  | RETURN ';' {$$ = new Statement("return",NULL,NULL, NULL, NULL, NULL);}
 		  | RETURN expr ';' {$$ = new Statement("return",$2,NULL, NULL, NULL, NULL);}
 		  | BREAK ';'  {$$ = new Statement("break",NULL,NULL, NULL, NULL, NULL);}
@@ -213,7 +213,7 @@ expressions: expr {$$ = new Expressions($1);}
 callout_args: ',' callout_arg {$$ = new Callout_args($2);}
 			| callout_args ',' callout_arg {$$->pushback($3);}
 
-callout_arg: expr {$$ = new Callout_arg($1, "str");}
+callout_arg: expr {$$ = new Callout_arg($1, "");}
 		   | STRING {$$ = new Callout_arg(NULL, string($1));}
 
 literal: INT_LITERAL {$$ = new Literal(1,$1); }

@@ -1,38 +1,36 @@
-class BubbleSort
+class Program
 {
-	void main()
+	int v1[100];
+
+	void main( )
 	{
-		int N, i, j,temp;
-		int a[100];
-		N_1 = N-1;
+		int n,j,i;
+		n = 10;
+		
 
-		//This section for initialising the array
-		N = 50;
-		for i=0,N
+		for i=0,n
 		{
-			a[i] = (N - i);
+			v1[i]=10-i;
 		}
-
-		//Sorting the array
-
-		for i=0,N
+		for i=0,n
 		{
-			for j=1,N_1
+			for j=0,n-1
 			{
-				if(a[j] > a[j+1])
+				if( v1[j] > v1[j+1] )
 				{
-					temp = a[j];
-					a[j] = a[j+1];
-					a[j+1] = temp;
+					int temp;
+					temp = v1[j+1];
+					v1[j+1] = v1[j];
+					v1[j] = temp;
 				}
 			}
 		}
-
-		//Printing the array
-
-		for i=0,N
+		callout("printf", "The final sorted order  is : ");
+		
+		for i = 0, n
 		{
-			callout("print_int",a[i]);
-		}	
+			callout("printf", "%d " , v1[i]);
+		}
 	}
+
 }
