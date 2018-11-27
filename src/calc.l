@@ -55,7 +55,7 @@ hex 0x[0-9a-fA-F][0-9a-fA-F]*
 "+="				{return PEQUALS;}
 "-="				{return MEQUALS;}
 {num}				{printf("num"); yylval.number = atoi(yytext); return INT_LITERAL;}
-{character}			{printf("char"); yylval.str  =strdup(yytext); return CHAR;}
+{character}			{printf("char"); yylval.number  =atoi(yytext); return CHAR;}
 {id}				{printf("id"); yylval.str = strdup(yytext); return ID;}
 \"{string}*\" 		{yylval.str = strdup(yytext);printf("string");return STRING;}
 

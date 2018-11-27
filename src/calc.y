@@ -58,8 +58,8 @@ class Program * root;
 %token EXCLAMATION
 %token <str> ID
 %token <number> INT_LITERAL
-%token CHAR
-%token BOOL
+%token <number> CHAR
+%token <number> BOOL
 %token '['
 %token '{'
 %token '}'
@@ -199,8 +199,8 @@ expr : location {$$ = new Expression(NULL, NULL, 0, NULL);}
 	 | EXCLAMATION expr { $$ = new Expression($2, NULL, 17, NULL); }
 	 | '(' expr ')' { $$ = new Expression($2, NULL, 18, NULL); }
 
-location : ID {$$ = new Location(NULL, yylval.str);}
-		 | ID '[' expr ']' {$$ = new Location($3, yylval.str);}
+location : ID {$$ = new Location(NULL, string($1));}
+		 | ID '[' expr ']' {$$ = new Location($3, string($1));}
 
 method_call: ID '(' expressions ')' {$$ = new Method_call($3, yylval.str, NULL, "str");}
 		   | ID '(' ')' {$$ = new Method_call(NULL, yylval.str, NULL, "str");}
@@ -216,9 +216,9 @@ callout_args: ',' callout_arg {$$ = new Callout_args($2);}
 callout_arg: expr {$$ = new Callout_arg($1, "str");}
 		   | STRING {$$ = new Callout_arg(NULL, yylval.str);}
 
-literal: INT_LITERAL {$$ = new Literal(1,yylval.number); }
-		| CHAR {$$ = new Literal(2,yylval.number);}
-		| BOOL {$$ = new Literal(3,yylval.number);}
+literal: INT_LITERAL {$$ = new Literal(1,$1); }
+		| CHAR {$$ = new Literal(2,$1);}
+		| BOOL {$$ = new Literal(3,$1);}
 
 %%
 
@@ -233,6 +233,8 @@ main(int argc, char **argv)
 	yyin = fopen(argv[1], "r");
 	yyparse();
 	printf("End of parsing");
+	root->generateCode();
+	root->generateCodeDump();
 }
 
 void yyerror(const char *s)
