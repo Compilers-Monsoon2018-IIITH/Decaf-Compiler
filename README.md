@@ -24,4 +24,4 @@
 ```
 
 ## Description
-The grammar writtem does not have any shift/reduce or reduce/reduce conflicts. The main code is in parser.ypp file. In this main function we first do yyparse(). In yyparse() the creation of AST, checking semantic errors. After that, dfs is done whose code is written in ast.h. Dfs is done using the visitor design pattern. Then after, LLVM-IR code is generated using generate code methods written for various classes. The LLVM-IR output is written in outputfile. We can lli interpreter to run the outputfile. Run-time checking is done, as we haven't done interpreter code evaluation.   
+The main parser code is in calc.y file. The various stages in the pipeline are lexical analysis, AST construction, IR generation. The written grammar is free of any shift-reduce conflicts. It has been tested on the programs in the test set. 
