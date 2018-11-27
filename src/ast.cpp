@@ -24,12 +24,14 @@ Callout_arg::Callout_arg(class Expression* expression, string str)
 	this->str = str;
 }
 
-Expression::Expression(class Expression * expression1, class Expression *expression2,int symbol,  class Literal* literal )
+Expression::Expression(class Expression * expression1, class Expression *expression2,int symbol,  class Literal* literal, class Location * location, class Method_call * method_call )
 {
 	this->expression1 = expression1;
 	this->expression2 = expression2;
 	this->symbol = symbol;
 	this->literal = literal;
+	this->location = location;
+	this->method_call = method_call;
 }
 
 Expressions::Expressions(class Expression * expression)
@@ -401,7 +403,7 @@ Function* Method_decl::generateCode(Constructs *compilerConstructs)
     }
 
     FunctionType *FT = llvm::FunctionType::get(returnType, arguments, false);
-    Function *F = llvm::Function::Create(FT, Function::ExternalLinkage, type, compilerConstructs->TheModule);
+    Function *F = llvm::Function::Create(FT, Function::ExternalLinkage, id, compilerConstructs->TheModule);
 
     unsigned Idx = 0;
     for (Function::arg_iterator AI = F->arg_begin(); Idx != arg_size; ++AI, ++Idx) {
@@ -523,6 +525,11 @@ Value *Statement::generateCode(Constructs* compilerConstructs)
 	else if(type == "block"){
 		return block->generateCode(compilerConstructs);
 	}
+	else if(type == "method_call"){
+		printf("been here\n");
+		return method_call->generateCode(compilerConstructs);
+	}
+
 }
 
 Value *Statement::generateCode_return(Constructs *compilerConstructs)
@@ -777,11 +784,12 @@ Value *Location::generateCode(Constructs *compilerConstructs)
 
 Value *Expression::generateCode(Constructs *compilerConstructs)
 {
-  cout<<"Entered Expression"<<symbol<<endl;
-  Value *left = expression1->generateCode(compilerConstructs);
-    Value *right = expression2->generateCode(compilerConstructs);
+  	cout<<"Entered Expression"<<symbol<<endl;
+
     if(expression1!= NULL and expression2!=NULL)
     {
+    	 	Value *left = expression1->generateCode(compilerConstructs);
+   	 Value *right = expression2->generateCode(compilerConstructs);
 	    if (expression1->symbol == 0) {
 	        left = compilerConstructs->Builder->CreateLoad(left);
 	    }
@@ -819,10 +827,17 @@ Value *Expression::generateCode(Constructs *compilerConstructs)
 	    } else if (symbol == 13) {
 	        v = compilerConstructs->Builder->CreateICmpNE(left, right, "notequalcomparetmp");
 	    }
+	    else if (symbol== 14){
+			v = compilerConstructs->Builder->CreateAnd(left, right, "andtmp");
+		}
+		else if (symbol== 15){
+			v = compilerConstructs->Builder->CreateOr(left, right, "ortmp");
+		}
 	    return v;
 	}
 	else
 	{
+
 		Value *v;
 		if(symbol == 18){
 			return expression1->generateCode(compilerConstructs);
@@ -833,7 +848,7 @@ Value *Expression::generateCode(Constructs *compilerConstructs)
 		}
 
 		else if(symbol == 0){
-			return compilerConstructs->Builder->CreateLoad(v);
+			return location->generateCode(compilerConstructs);
 		}
 		else if(symbol == 16){
 			v = expression1->generateCode(compilerConstructs);
@@ -843,9 +858,119 @@ Value *Expression::generateCode(Constructs *compilerConstructs)
 			v = expression1->generateCode(compilerConstructs);
 			v = compilerConstructs->Builder->CreateNot(v, "negtmp");
 		}
+
+		else if(symbol == 1){
+			return method_call->generateCode(compilerConstructs);
+		}
+
 		return v;
 	}
 
 }
 
 
+
+Value *Callout_arg::generateCode(Constructs *compilerConstructs)
+{
+    cout<<"Entered Callout_arg "<<str<<endl;
+    if (expression == nullptr && str=="") {
+        compilerConstructs->errors++;
+        return reportError("Invalid Callout Arg");
+    }
+    Value *v;
+    if(expression != nullptr)
+    {
+      cout<<"NOT NULL EXPR\n";
+      v = expression->generateCode(compilerConstructs);
+      if (expression->symbol==0) {
+          v = compilerConstructs->Builder->CreateLoad(v);
+      }
+    }
+    else
+    {
+      v = compilerConstructs->Builder->CreateGlobalStringPtr(str);
+    }
+    cout<<"Exited from Call_out_arg\n";
+    return v;
+}
+
+Value* Method_call::generateCode(Constructs *compilerConstructs)
+{
+	if(Id == "str")
+	{
+		return generateCode_callout(compilerConstructs);
+	}
+	else
+	{
+		return generateCode_methodcall(compilerConstructs);
+	}
+}
+
+Value* Method_call::generateCode_callout(Constructs *compilerConstructs)
+{
+  cout<<"Entered Call_out "<<endl;
+  std::vector<llvm::Type *> argTypes;
+    std::vector<Value *> Args;
+    std::vector<class Callout_arg *> args_list;
+    if(callout_args!=NULL) 
+      args_list= callout_args->v;
+
+    /**
+     * Iterate through the arguments and generate the code required for each one of them
+     */
+    for (auto &i : args_list) {
+        Value *tmp = i->generateCode(compilerConstructs);
+        if (tmp == nullptr) {
+            return nullptr;
+        }
+        Args.push_back(tmp);
+        argTypes.push_back(tmp->getType());
+    }
+    /* Generate the code for the function execution */
+    llvm::ArrayRef<llvm::Type *> argsRef(argTypes);
+    llvm::ArrayRef<llvm::Value *> funcargs(Args);
+    llvm::FunctionType *FType = FunctionType::get(Type::getInt32Ty(compilerConstructs->Context), argsRef, false);
+    Constant *func = compilerConstructs->TheModule->getOrInsertFunction(callout_str, FType);
+    if (!func) {
+        return reportError("Error in inbuilt function. Unknown Function name " + callout_str);
+    }
+    Value *v = compilerConstructs->Builder->CreateCall(func, funcargs);
+    return v;
+}
+
+Value* Method_call::generateCode_methodcall(Constructs *compilerConstructs)
+{
+  cout<<"Entered Method_call\n";
+  Function *calle = compilerConstructs->TheModule->getFunction(Id);
+    if (calle == nullptr) {
+        compilerConstructs->errors++;
+        return reportError("Unknown Function name" + Id);
+    }
+    /* Check if required number of parameters are passed */
+    vector<class Expression*> args_list;
+    if( expressions!=NULL)
+       args_list = expressions->v;
+    if (calle->arg_size() != args_list.size()) {
+        compilerConstructs->errors++;
+        return reportError("Incorrect Number of Parameters Passed");
+    }
+    /// Generate the code for the arguments
+    vector<Value *> Args;
+    for (auto &arg : args_list) {
+        Value *argVal = arg->generateCode(compilerConstructs);
+        if (arg->symbol == 0) {
+            argVal = compilerConstructs->Builder->CreateLoad(argVal);
+        }
+        if (argVal == nullptr) {
+            compilerConstructs->errors++;
+            // reportError("Argument is not valid");
+            return nullptr;
+        }
+        Args.push_back(argVal);
+    }
+    // Reverse the order of arguments as the parser parses in the reverse order
+    // std::reverse(Args.begin(), Args.end());
+    // Generate the code for the function call
+    Value *v = compilerConstructs->Builder->CreateCall(calle, Args);
+    return v;
+}

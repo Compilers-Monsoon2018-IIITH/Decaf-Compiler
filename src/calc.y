@@ -64,7 +64,7 @@ class Program * root;
 %token '{'
 %token '}'
 %token CALLOUT
-%token STRING
+%token <str> STRING
 %token FOR
 %token IF
 %token BREAK
@@ -179,33 +179,33 @@ if_for :  IF '(' expr ')' block {$$ = new If_for($5, NULL, $3, NULL,"str");}
 		| IF '(' expr ')' block ELSE block {$$ = new If_for($5, $7, $3, NULL,"str");}
 		| FOR ID EQUALS expr ',' expr block {$$ = new If_for($7, NULL, $4, $6,string($2));}
 
-expr : location {$$ = new Expression(NULL, NULL, 0, NULL);}
-	 | method_call { $$ = new Expression(NULL, NULL, 1, NULL); }
-	 | literal { $$ = new Expression(NULL, NULL, 2, $1); }
-	 | expr PLUS expr {$$ = new Expression($1, $3, 3, NULL); }
-	 | expr MINUS expr { $$ = new Expression($1, $3, 4, NULL); }
-	 | expr MUL expr { $$ = new Expression($1, $3, 5, NULL); }
-	 | expr DIV expr { $$ = new Expression($1, $3, 6, NULL); }
-	 | expr MOD expr { $$ = new Expression($1, $3, 7, NULL); }
-	 | expr GT expr { $$ = new Expression($1, $3, 8, NULL);  }
-	 | expr LT expr { $$ = new Expression($1, $3, 9, NULL); }
-	 | expr GE expr { $$ = new Expression($1, $3, 10, NULL); }
-	 | expr LE expr { $$ = new Expression($1, $3, 11, NULL); }
-	 | expr EE expr { $$ = new Expression($1, $3, 12, NULL); }
-	 | expr NE expr { $$ = new Expression($1, $3, 13, NULL); }
-	 | expr AND expr {  $$ = new Expression($1, $3, 14, NULL); }
-	 | expr OR expr { $$ = new Expression($1, $3, 15, NULL); }
-	 | MINUS expr {$$ = new Expression($2, NULL, 16, NULL);}
-	 | EXCLAMATION expr { $$ = new Expression($2, NULL, 17, NULL); }
-	 | '(' expr ')' { $$ = new Expression($2, NULL, 18, NULL); }
+expr : location {$$ = new Expression(NULL, NULL, 0, NULL, $1, NULL);}
+	 | method_call { $$ = new Expression(NULL, NULL, 1, NULL, NULL, $1); }
+	 | literal { $$ = new Expression(NULL, NULL, 2, $1, NULL, NULL); }
+	 | expr PLUS expr {$$ = new Expression($1, $3, 3, NULL, NULL, NULL); }
+	 | expr MINUS expr { $$ = new Expression($1, $3, 4, NULL, NULL, NULL); }
+	 | expr MUL expr { $$ = new Expression($1, $3, 5, NULL, NULL, NULL); }
+	 | expr DIV expr { $$ = new Expression($1, $3, 6, NULL, NULL, NULL); }
+	 | expr MOD expr { $$ = new Expression($1, $3, 7, NULL, NULL, NULL); }
+	 | expr GT expr { $$ = new Expression($1, $3, 8, NULL, NULL, NULL);  }
+	 | expr LT expr { $$ = new Expression($1, $3, 9, NULL, NULL, NULL); }
+	 | expr GE expr { $$ = new Expression($1, $3, 10, NULL, NULL, NULL); }
+	 | expr LE expr { $$ = new Expression($1, $3, 11, NULL, NULL, NULL); }
+	 | expr EE expr { $$ = new Expression($1, $3, 12, NULL, NULL, NULL); }
+	 | expr NE expr { $$ = new Expression($1, $3, 13, NULL, NULL, NULL); }
+	 | expr AND expr {  $$ = new Expression($1, $3, 14, NULL, NULL, NULL); }
+	 | expr OR expr { $$ = new Expression($1, $3, 15, NULL, NULL, NULL); }
+	 | MINUS expr {$$ = new Expression($2, NULL, 16, NULL, NULL, NULL);}
+	 | EXCLAMATION expr { $$ = new Expression($2, NULL, 17, NULL, NULL, NULL); }
+	 | '(' expr ')' { $$ = new Expression($2, NULL, 18, NULL, NULL, NULL); }
 
 location : ID {$$ = new Location(NULL, string($1));}
 		 | ID '[' expr ']' {$$ = new Location($3, string($1));}
 
-method_call: ID '(' expressions ')' {$$ = new Method_call($3, yylval.str, NULL, "str");}
-		   | ID '(' ')' {$$ = new Method_call(NULL, yylval.str, NULL, "str");}
-		   | CALLOUT '(' STRING ')' {$$ = new Method_call(NULL,"str", NULL, yylval.str);}
-		   | CALLOUT '(' STRING callout_args ')' {$$ = new Method_call(NULL,"str", $4, yylval.str);}
+method_call: ID '(' expressions ')' {$$ = new Method_call($3, string($1), NULL, "str");}
+		   | ID '(' ')' {$$ = new Method_call(NULL, string($1), NULL, "str");}
+		   | CALLOUT '(' STRING ')' {$$ = new Method_call(NULL,"str", NULL, string($3));}
+		   | CALLOUT '(' STRING callout_args ')' {$$ = new Method_call(NULL,"str", $4, string($3));}
 
 expressions: expr {$$ = new Expressions($1);}
 			| expressions ',' expr { $$->pushback($3);}
@@ -214,7 +214,7 @@ callout_args: ',' callout_arg {$$ = new Callout_args($2);}
 			| callout_args ',' callout_arg {$$->pushback($3);}
 
 callout_arg: expr {$$ = new Callout_arg($1, "str");}
-		   | STRING {$$ = new Callout_arg(NULL, yylval.str);}
+		   | STRING {$$ = new Callout_arg(NULL, string($1));}
 
 literal: INT_LITERAL {$$ = new Literal(1,$1); }
 		| CHAR {$$ = new Literal(2,$1);}

@@ -84,7 +84,9 @@ public:
 	class Expression * expression2;
 	int symbol;
 	class Literal* literal;
-	Expression(class Expression * ,class  Expression * , int, class Literal*);
+	class Location * location;
+	class Method_call * method_call;
+	Expression(class Expression * ,class  Expression * , int, class Literal*, class Location *, class Method_call *);
 	virtual Value *generateCode(Constructs *compilerConstructs);
 
 };
@@ -95,6 +97,7 @@ class Callout_arg:public AST
       	string str;
       	class Expression* expression;
   		Callout_arg(class Expression*,string str);
+	virtual Value *generateCode(Constructs *compilerConstructs);
 
 };
 
@@ -125,6 +128,9 @@ public:
 	string Id;
 	string callout_str;
 	Method_call(class Expressions*, string, class Callout_args *, string);
+	virtual Value *generateCode_callout(Constructs *compilerConstructs);
+	virtual Value *generateCode_methodcall(Constructs *compilerConstructs);
+	virtual Value *generateCode(Constructs *compilerConstructs);	
 };
 
 class Callout_args:public AST
